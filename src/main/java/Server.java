@@ -50,11 +50,12 @@ public class Server {
 
         app.get("/api/nextImage", ctx -> {
             List<Image> nextImages;
+            long count = Long.parseLong(ctx.queryParam("count"));
             if (ctx.sessionAttribute("exclude") == null) {
-                nextImages = dao.getNextImage(null);
+                nextImages = dao.getNextImage(null, count);
                 ctx.sessionAttribute("exclude", toExcludeString(nextImages));
             } else {
-                nextImages = dao.getNextImage(ctx.sessionAttribute("exclude").toString());
+                nextImages = dao.getNextImage(ctx.sessionAttribute("exclude").toString(), count);
                 ctx.sessionAttribute("exclude", ctx.sessionAttribute("exclude").toString().concat(", " + toExcludeString(nextImages)));
             }
             log.info(ctx.sessionAttribute("exclude").toString());
@@ -78,6 +79,12 @@ public class Server {
     }
 
     private static String toExcludeString(List<Image> images) {
-        return images.get(0).getId() + ", " + images.get(1).getId();
+        if (images.isEmpty())
+            throw new IllegalArgumentException("Нет больше картинок");
+        String result = String.valueOf(images.get(0).getId());
+        for (int i = 1; i < images.size(); i++) {
+            result += ", " + images.get(i).getId();
+        }
+        return result;
     }
 }

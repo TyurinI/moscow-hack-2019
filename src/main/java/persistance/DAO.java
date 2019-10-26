@@ -28,13 +28,13 @@ public class DAO {
     }
 
 
-    public List<Image> getNextImage(String excludeImageIds) {
+    public List<Image> getNextImage(String excludeImageIds, long count) {
         String sql;
         try (Connection con = sql2o.open()) {
             if (excludeImageIds == null)
-                sql = "select id, name from images order by RANDOM() limit 2";
+                sql = "select id, name from images order by RANDOM() limit " + count;
             else
-                sql = "select id, name from images where id not in (" + excludeImageIds + ") order by RANDOM() limit 2";
+                sql = "select id, name from images where id not in (" + excludeImageIds + ") order by RANDOM() limit " + count;
             return con.createQuery(sql)
                     .executeAndFetch(Image.class);
         }
