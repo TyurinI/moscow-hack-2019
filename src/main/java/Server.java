@@ -8,7 +8,6 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.Collections;
 import java.util.List;
-import java.util.SplittableRandom;
 
 public class Server {
     private static final Logger log = LoggerFactory.getLogger(Server.class);
@@ -18,7 +17,7 @@ public class Server {
         Javalin app = Javalin.create(config -> {
             config.defaultContentType = "application/json";
             config.enableCorsForAllOrigins();
-            config.addStaticFiles("/");
+            config.addStaticFiles("/public");
         }).error(404, ctx -> ctx.json("not found"))
                 .start(8080);
         app.before(ctx -> log.info("request : " + ctx.fullUrl() + " body:" + ctx.body()));
