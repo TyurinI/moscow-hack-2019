@@ -73,7 +73,6 @@ public class Server {
         });
 
         app.get("/api/playlists", ctx -> ctx.json(dao.getAllPlaylists()));
-
         app.exception(IllegalArgumentException.class, (e, ctx) -> {
             ctx.status(500);
             ctx.json(Collections.singletonMap("message", e.getMessage()));

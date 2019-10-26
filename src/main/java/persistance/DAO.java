@@ -9,7 +9,7 @@ import persistance.model.Image;
 import java.util.List;
 
 public class DAO {
-    private Sql2o sql2o = new Sql2o("jdbc:postgresql://localhost:5432/postgres", "postgres", "lal");
+    private Sql2o sql2o = new Sql2o("jdbc:postgresql://82.202.226.2:5432/postgres", "postgres", "lal");
 
     public List<Song> getAllSongs() {
         String sql = "SELECT id, title, author FROM songs";
@@ -42,13 +42,21 @@ public class DAO {
     }
 
     public List<Song> getSongsRelatedToImage(long imageId) {
-        String sql = "SELECT id, title, author FROM songs order by RANDOM() limit 7";
         try (Connection con = sql2o.open()) {
+            String group = con.createQuery("select images.group from images where id = " + imageId).executeScalar(String.class);
+            String sql = "SELECT id, " +
+                    "title, " +
+                    "author, " +
+                    "album, " +
+                    "genre, " +
+                    "author || ' - ' || title || '.mp3' as link " +
+                    "FROM songs " +
+                    "where " + group + " = 1 order by RANDOM() limit 7"; //Бог простит
             return con.createQuery(sql).executeAndFetch(Song.class);
         }
     }
 
-    public List<Playlist> getAllPlaylists(){
+    public List<Playlist> getAllPlaylists() {
         String sql = "SELECT id, title, \"imageName\" FROM playlists order by RANDOM() limit 5";
         try (Connection con = sql2o.open()) {
             return con.createQuery(sql).executeAndFetch(Playlist.class);
