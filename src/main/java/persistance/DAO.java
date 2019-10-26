@@ -2,6 +2,7 @@ package persistance;
 
 import org.sql2o.Connection;
 import org.sql2o.Sql2o;
+import persistance.model.Playlist;
 import persistance.model.Song;
 import persistance.model.Image;
 
@@ -44,6 +45,13 @@ public class DAO {
         String sql = "SELECT id, title, author FROM songs order by RANDOM() limit 7";
         try (Connection con = sql2o.open()) {
             return con.createQuery(sql).executeAndFetch(Song.class);
+        }
+    }
+
+    public List<Playlist> getAllPlaylists(){
+        String sql = "SELECT id, title, \"imageName\" FROM playlists order by RANDOM() limit 5";
+        try (Connection con = sql2o.open()) {
+            return con.createQuery(sql).executeAndFetch(Playlist.class);
         }
     }
 }
