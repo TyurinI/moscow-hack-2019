@@ -8,6 +8,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.Collections;
 import java.util.List;
+import java.util.SplittableRandom;
 
 public class Server {
     private static final Logger log = LoggerFactory.getLogger(Server.class);
@@ -22,38 +23,62 @@ public class Server {
                 .start(8080);
         app.before(ctx -> log.info("request : " + ctx.fullUrl() + " body:" + ctx.body()));
 
-        app.get("/", ctx ->
+        app.get("/api/", ctx ->
                 ctx.json(Collections.singletonMap("Message", "Healthcheck, server is running"))
         );
 
-        app.get("/allSong", ctx ->
+        app.get("/api/allSong", ctx ->
                 ctx.json(dao.getAllSongs())
         );
 
-        app.get("/neuron", ctx -> {
+        app.get("/api/neuron", ctx -> {
             Process process = Runtime.getRuntime().exec("python ./script.py");
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             log.info(reader.readLine());
             reader.close();
         });
 
-        app.get("/vote", ctx -> {
-            long songId = Long.parseLong(ctx.queryParam("songId"));
-            String emotion = ctx.queryParam("emotion");
-            dao.addNewVote(songId, emotion);
-            ctx.status(201);
-        });
-        app.get("/nextImage", ctx -> {
-            Image nextImage;
-            if (ctx.sessionAttribute("exclude") == null) {
-                nextImage = dao.getNextImage(null);
-                ctx.sessionAttribute("exclude", nextImage.getId());
+        app.get("/api/vote", ctx -> {
+            if (ctx.queryParam("songId") == null || ctx.queryParam("emotion") == null) {
+                throw new IllegalArgumentException("songId and emotion required");
             } else {
-                nextImage = dao.getNextImage(ctx.sessionAttribute("exclude").toString());
-                ctx.sessionAttribute("exclude", ctx.sessionAttribute("exclude").toString().concat("," + nextImage.getId()));
+                long songId = Long.parseLong(ctx.queryParam("songId"));
+                String emotion = ctx.queryParam("emotion");
+                dao.addNewVote(songId, emotion);
+                ctx.status(201);
+            }
+        });
+
+        app.get("/api/nextImage", ctx -> {
+            List<Image> nextImages;
+            if (ctx.sessionAttribute("exclude") == null) {
+                nextImages = dao.getNextImage(null);
+                ctx.sessionAttribute("exclude", toExcludeString(nextImages));
+            } else {
+                nextImages = dao.getNextImage(ctx.sessionAttribute("exclude").toString());
+                ctx.sessionAttribute("exclude", ctx.sessionAttribute("exclude").toString().concat(", " + toExcludeString(nextImages)));
             }
             log.info(ctx.sessionAttribute("exclude").toString());
-            ctx.json(nextImage);
+            ctx.json(nextImages);
         });
+
+        app.get("/api/submitImage", ctx -> {
+            ctx.sessionAttribute("exclude", null);
+            if (ctx.queryParam("imageId") == null) {
+                throw new IllegalArgumentException("imageId required");
+            } else {
+                long imageId = Long.parseLong(ctx.queryParam("imageId"));
+                ctx.json(dao.getSongsRelatedToImage(imageId));
+            }
+        });
+
+        app.exception(IllegalArgumentException.class, (e, ctx) -> {
+            ctx.status(500);
+            ctx.json(Collections.singletonMap("message", e.getMessage()));
+        });
+    }
+
+    private static String toExcludeString(List<Image> images) {
+        return images.get(0).getId() + ", " + images.get(1).getId();
     }
 }

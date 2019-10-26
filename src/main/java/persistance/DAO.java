@@ -28,15 +28,22 @@ public class DAO {
     }
 
 
-    public Image getNextImage(String excludeImageIds) {
+    public List<Image> getNextImage(String excludeImageIds) {
         String sql;
         try (Connection con = sql2o.open()) {
             if (excludeImageIds == null)
-                sql = "select id, name from images order by RANDOM() limit 1";
+                sql = "select id, name from images order by RANDOM() limit 2";
             else
-                sql = "select id, name from images where id not in (" + excludeImageIds + ") order by RANDOM() limit 1";
+                sql = "select id, name from images where id not in (" + excludeImageIds + ") order by RANDOM() limit 2";
             return con.createQuery(sql)
-                    .executeAndFetch(Image.class).get(0);
+                    .executeAndFetch(Image.class);
+        }
+    }
+
+    public List<Song> getSongsRelatedToImage(long imageId) {
+        String sql = "SELECT id, title, author FROM songs order by RANDOM() limit 7";
+        try (Connection con = sql2o.open()) {
+            return con.createQuery(sql).executeAndFetch(Song.class);
         }
     }
 }
