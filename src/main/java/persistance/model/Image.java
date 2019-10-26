@@ -3,8 +3,7 @@ package persistance.model;
 import lombok.Data;
 
 @Data
-public class Song {
+public class Image {
     private long id;
-    private String title;
-    private String author;
+    private String name;
 }
