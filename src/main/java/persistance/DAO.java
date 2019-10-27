@@ -51,7 +51,7 @@ public class DAO {
                     "genre, " +
                     "author || ' - ' || title || '.mp3' as link " +
                     "FROM songs " +
-                    "where " + group + " = 1 order by RANDOM() limit 7"; //Бог простит
+                    "where " + group + " = 1 order by RANDOM() limit 11"; //Бог простит
             return con.createQuery(sql).executeAndFetch(Song.class);
         }
     }
