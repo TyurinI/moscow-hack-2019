@@ -19,7 +19,7 @@ public class Server {
             config.enableCorsForAllOrigins();
             config.addStaticFiles("/public");
         }).error(404, ctx -> ctx.json("not found"))
-                .start(8080);
+                .start(80);
         app.before(ctx -> log.info("request : " + ctx.fullUrl() + " body:" + ctx.body()));
 
         app.get("/api/", ctx ->
